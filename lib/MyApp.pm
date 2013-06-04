@@ -11,29 +11,12 @@ sub startup {
 	
 	my $r = $self->routes;
 	
-	$r->any('/' => sub {
-		my $self = shift;
-		
-		my $user = $self->param('user') || '';
-		my $pass = $self->param('pass') || '';
-		return $self->render unless $self->users->check($user, $pass);
-		
-		$self->session(user => $user);
-		$self->flash(message => 'Thanks for logging in.');
-		$self->redirect_to('protected');
-	} => 'index');
+	$r->any('/')->to('login#index')->name('index');
 	
-	my $logged_in = $r->under(sub {
-		my $self = shift;
-		return $self->session('user') || !$self->redirect_to('index');
-	});
-	$logged_in->get('/protected');
+	my $logged_in = $r->under->to('login#logged_in');
+	$logged_in->get('/protected')->to('login#protected');
 	
-	$r->get('/logout' => sub {
-		my $self = shift;
-		$self->session(expires => 1);
-		$self->redirect_to('index');
-	});
+	$r->get('/logout')->to('login#index');
 }
 
 1;
